@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📸</text></svg>">
+    <title>DOKUMENTASI VICI 2025-1222</title>
+    <style>
+        body { 
+            background: #222; 
+            color: #fff; 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin: 0;
+            padding: 20px 0;
+        }
+        
+        /* Floating Controls */
+        .floating-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+            flex-wrap: wrap;
+            flex-direction: row;
+            align-items: flex-start;
+            max-width: 300px;
+        }
+        
+        /* Exclude notification from flex flow in desktop */
+        .floating-controls .floating-btn {
+            flex-shrink: 0;
+        }
+        
+        /* Auto Notification - Positioned independently */
+        .auto-notification {
+            position: fixed;
+            top: 68px;
+            right: 20px;
+            background: rgba(255, 152, 0, 0.95);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1002;
+            display: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Force show when has .show class */
+        .auto-notification.show {
+            display: block !important;
+            animation: slideDown 0.3s ease;
+        }
+        
+        /* Arrow pointer */
+        .auto-notification::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 10px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 5px solid rgba(255, 152, 0, 0.95);
+        }
+        
+        .auto-notification:hover {
+            background: rgba(255, 152, 0, 1);
+            transform: scale(1.05);
+        }
+        
+        @keyframes slideDown {
+            0% {
+                opacity: 0;
+                top: 58px;
+            }
+            100% {
+                opacity: 1;
+                top: 68px;
+            }
+        }
+        
+        .floating-nav {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+            flex-wrap: wrap;
+        }
+        
+        .floating-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(68, 68, 68, 0.9);
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+        
+        .floating-btn:hover {
+            background: rgba(102, 102, 102, 0.9);
+            transform: translateY(-2px);
+        }
+
+        /* Grid item download button */
+        .grid-download {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 20;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            backdrop-filter: blur(6px);
+        }
+
+        /* Slide view download button */
+        .slide-download {
+            position: absolute;
+            bottom: 18px;
+            right: 18px;
+            z-index: 1001;
+            padding: 10px 14px;
+            border-radius: 22px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95em;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+        }
+        
+        /* Title Styling */
+        h1 {
+            margin-top: 80px;
+            margin-bottom: 20px;
+        }
+        
+        /* Media Query untuk Portrait Mode */
+        @media (orientation: portrait) and (max-width: 768px) {
+            .floating-controls {
+                top: 10px;
+                right: 10px;
+                flex-direction: column;
+                gap: 6px;
+                max-width: none;
+                width: auto;
+                align-items: flex-end;
+                overflow: visible;
+            }
+            
+            /* Notification positioned to the left of buttons */
+            .auto-notification {
+                top: 10px;
+                right: 115px;
+                font-size: 0.75em;
+                padding: 6px 12px;
+                max-width: 180px;
+                white-space: normal;
+                text-align: center;
+            }
+            
+            .auto-notification::before {
+                left: auto;
+                right: -5px;
+                top: 8px;
+                border-left: 5px solid rgba(255, 152, 0, 0.95);
+                border-right: none;
+                border-bottom: 5px solid transparent;
+                border-top: 5px solid transparent;
+            }
+            
+            @keyframes slideDown {
+                0% {
+                    opacity: 0;
+                    right: 105px;
+                }
+                100% {
+                    opacity: 1;
+                    right: 115px;
+                }
+            }
+            
+            .floating-nav {
+                top: 10px;
+                left: 10px;
+                flex-direction: column;
+                gap: 5px;
+                max-width: 100px;
+            }
+            
+            .floating-btn {
+                padding: 8px 10px;
+                font-size: 0.8em;
+                text-align: center;
+                white-space: normal; /* allow text to wrap */
+                min-width: 0;
+            }
+            
+            h1 {
+                margin-top: 120px;
+                font-size: 1.5em;
+            }
+            
+            #media-container {
+                margin-top: 20px;
+            }
+        }
+        
+        /* Media Query untuk Mobile Portrait */
+        @media (max-width: 480px) and (orientation: portrait) {
+            .floating-controls {
+                right: 5px;
+                top: 5px;
+                max-width: none;
+                width: auto;
+                flex-direction: column;
+                gap: 6px;
+                align-items: flex-end;
+                overflow: visible;
+            }
+            
+            /* Notification positioned to the left */
+            .auto-notification {
+                top: 5px;
+                right: 90px;
+                font-size: 0.7em;
+                padding: 5px 10px;
+                max-width: 150px;
+            }
+            
+            .auto-notification::before {
+                right: -4px;
+                top: 6px;
+            }
+            
+            @keyframes slideDown {
+                0% {
+                    opacity: 0;
+                    right: 80px;
+                }
+                100% {
+                    opacity: 1;
+                    right: 90px;
+                }
+            }
+            
+            .floating-nav {
+                left: 5px;
+                top: 5px;
+                max-width: 80px;
+            }
+            
+            .floating-btn {
+                padding: 6px 8px;
+                font-size: 0.75em;
+                border-radius: 15px;
+                white-space: normal; /* allow label to wrap like "⬇️ Download All" */
+                text-align: center;
+                min-width: 0;
+            }
+            
+            h1 {
+                margin-top: 140px;
+                font-size: 1.2em;
+                padding: 0 10px;
+            }
+        }
+        
+        /* Media Container */
+        #media-container { 
+            margin: 60px auto 40px auto; 
+            max-width: 80vw; 
+            max-height: 70vh;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Skeleton shimmer loader */
+        .skeleton-loader {
+            width: 100%;
+            max-width: 80vw;
+            height: 400px;
+            background: linear-gradient(90deg, #2a2a2a 25%, #353535 50%, #2a2a2a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Media items - no animation */
+        #media-container img, 
+        #media-container video { 
+            max-width: 100%; 
+            max-height: 70vh; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+        }
+        
+        #filename { 
+            margin-top: 20px; 
+            font-size: 1.1em; 
+            color: #ccc; 
+        }
+        
+        /* Navigation buttons */
+        .nav-controls {
+            margin: 30px 0;
+            display: none; /* Hidden karena sudah dipindah ke floating */
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .nav-btn {
+            padding: 12px 24px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: none;
+            background: #444;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: #666;
+        }
+        
+        /* Grid View */
+        .grid-container {
+            display: none;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        /* Mobile Grid - 2 columns */
+        @media (max-width: 768px) {
+            .grid-view {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+        }
+        
+        .grid-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            background: #333;
+            aspect-ratio: 1;
+        }
+        
+        .grid-item:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Active item indicator */
+        .grid-item.active {
+            outline: 4px solid #ff9800;
+            outline-offset: -4px;
+            transform: scale(1.02);
+        }
+        
+        .grid-item.active::after {
+            content: '▶️';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            background: rgba(255, 152, 0, 0.9);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        
+        .grid-item img,
+        .grid-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #444;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Lazy loading placeholder */
+        .grid-item img[loading="lazy"],
+        .grid-item video[loading="lazy"] {
+            background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .grid-item .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 10px;
+            font-size: 0.8em;
+            text-align: center;
+        }
+        
+        /* View Toggle */
+        .view-toggle {
+            margin: 20px 0;
+        }
+        
+        .toggle-btn {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: 2px solid #444;
+            background: transparent;
+            color: #fff;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .toggle-btn.active {
+            background: #444;
+            border-color: #666;
+        }
+        
+        .toggle-btn:hover {
+            border-color: #666;
+        }
+        
+        /* Filter Checkbox */
+        .filter-container {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .filter-label {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        @media (max-width: 480px) {
+            .filter-container {
+                font-size: 0.9em;
+            }
+        }
+
+        /* Privacy Gate */
+        body.locked { overflow: hidden; }
+        #protected-content { filter: blur(18px); pointer-events: none; user-select: none; transition: filter 0.3s ease; }
+        body.unlocked #protected-content { filter: none; pointer-events: auto; user-select: auto; }
+        .privacy-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), rgba(0,0,0,0.75)), rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 2000;
+        }
+        .privacy-card {
+            background: rgba(34,34,34,0.9);
+            border: 1px solid #444;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+        }
+        .privacy-card h2 { margin: 0 0 10px; font-size: 1.2em; }
+        .privacy-card p { margin: 0 0 14px; color: #ddd; line-height: 1.5; }
+        .gate-form { display: flex; flex-direction: column; gap: 12px; }
+        .blank-input {
+            padding: 12px;
+            border: none;
+            border-bottom: 2px solid #fff;
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            font-size: 1.05em;
+            letter-spacing: 0.2em;
+            text-transform: capitalize;
+            outline: none;
+        }
+        .blank-input::placeholder { color: #aaa; letter-spacing: 0.25em; }
+        .gate-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            color: #0d0d0d;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(255,152,0,0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .gate-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(255,152,0,0.45); }
+        .gate-error { color: #ffb3b3; font-size: 0.95em; min-height: 18px; }
+    </style>
+</head>
+<body class="locked">
+    <div id="privacy-overlay" class="privacy-overlay">
+        <div class="privacy-card">
+            <h2>Proteksi privasi</h2>
+            <p>Jawab pertanyaan berikut untuk membuka dokumentasi.</p>
+            <form id="gate-form" class="gate-form">
+                <label for="gate-input">Siapa nama lengkap mentor ftj didalam dokumentasi ini?</label>
+                <input id="gate-input" class="blank-input" type="text" name="gate" placeholder="___ ______" autocomplete="off" required>
+                <button type="submit" class="gate-btn">Buka halaman</button>
+                <div id="gate-error" class="gate-error"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="protected-content">
+        <!-- Floating Navigation -->
+        <div class="floating-nav">
+            <button class="floating-btn" id="prev">⬅️ Prev</button>
+            <button class="floating-btn" id="next">Next ➡️</button>
+        </div>
+        
+        <!-- Floating Controls -->
+        <div class="floating-controls">
+            <button class="floating-btn" onclick="toggleAutoplay()">⏯️ Auto</button>
+            <button class="floating-btn" onclick="toggleFullscreen()">🔳 Full</button>
+            <button class="floating-btn" onclick="shuffleMedia()">🔀 Shuffle</button>
+            <button class="floating-btn download-all" onclick="downloadAll()">📦 Download All</button>
+        </div>
+        
+        <!-- Auto Mode Notification - Separate from floating controls -->
+        <div id="auto-notification" class="auto-notification" onclick="enableAutoFromNotification()">
+            ⏯️ Klik untuk aktifkan mode auto
+        </div>
+        
+        <!-- Title -->
+        <h1>DOKUMENTASI VICI 2025 DESEMBER 22 - Malam Hari</h1>
+        
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <button class="toggle-btn active" onclick="showSlideView()">📱 Slide View</button>
+            <button class="toggle-btn" onclick="showGridView()">🔲 Grid View</button>
+        </div>
+        
+        <!-- Filter Checkbox -->
+        <!-- <div class="filter-container">
+            <input type="checkbox" id="hideNonPriority" class="filter-checkbox" checked onchange="toggleNonPriorityFilter()">
+            <label for="hideNonPriority" class="filter-label">🎉 Sembunyikan dokumentasi yang tidak meriah</label>
+        </div> -->
+        
+        <!-- Slide View (Default) -->
+        <div id="slide-container">
+            <div id="media-container"></div>
+            <button class="floating-btn slide-download" onclick="downloadCurrentMedia()">⬇️ Download</button>
+            <div id="filename"></div>
+            <!-- Navigation buttons dihilangkan karena sudah floating -->
+        </div>
+        
+        <!-- Grid View -->
+        <div id="grid-container" class="grid-container">
+            <h2>Semua Media</h2>
+            <div id="grid-view" class="grid-view">
+                <!-- Grid items will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const overlay = document.getElementById('privacy-overlay');
+            const form = document.getElementById('gate-form');
+            const input = document.getElementById('gate-input');
+            const error = document.getElementById('gate-error');
+            const protectedContent = document.getElementById('protected-content');
+            const answer = 'rio pratama';
+
+            function loadPlayerScript() {
+                const s = document.createElement('script');
+                s.src = 'script.js';
+                s.defer = true;
+                document.body.appendChild(s);
+            }
+
+            function unlock() {
+                document.body.classList.remove('locked');
+                document.body.classList.add('unlocked');
+                protectedContent.style.filter = 'none';
+                protectedContent.style.pointerEvents = 'auto';
+                overlay.remove();
+                loadPlayerScript();
+            }
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const value = (input.value || '').trim().toLowerCase();
+                if (value === answer) {
+                    unlock();
+                } else {
+                    error.textContent = 'Jawaban salah, coba lagi.';
+                }
+            });
+
+            input.addEventListener('input', () => {
+                error.textContent = '';
+            });
+        })();
+    </script>
+</body>
+</html>
