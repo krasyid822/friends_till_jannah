@@ -997,23 +997,69 @@ if (isMediaPlayerPage) {
     // Auto notification functions
     function showAutoNotification() {
         console.log('showAutoNotification called');
-        console.log('autoNotification element:', autoNotification);
-        if (autoNotification) {
+        if (!autoNotification) return console.error('autoNotification element not found!');
+
+        // Prefer the button that explicitly toggles autoplay (reliable even if layout wraps)
+        const autoBtn = document.querySelector('.floating-controls button[onclick*="toggleAutoplay"]') || document.querySelector('.floating-controls .floating-btn');
+
+        // Prepare notification for measurement
+        autoNotification.classList.remove('show');
+        autoNotification.style.display = 'block';
+        autoNotification.style.visibility = 'hidden';
+        autoNotification.style.removeProperty('--arrow-right');
+        autoNotification.style.removeProperty('--arrow-left');
+        autoNotification.style.left = '';
+        autoNotification.style.right = '';
+        autoNotification.style.top = '';
+
+        if (!autoBtn) {
+            // Fallback: show at default position
+            autoNotification.style.visibility = 'visible';
             autoNotification.classList.add('show');
-            console.log('Notification shown');
-            // Auto hide after 5 seconds
-            setTimeout(() => {
-                hideAutoNotification();
-            }, 5000);
-        } else {
-            console.error('autoNotification element not found!');
+            setTimeout(hideAutoNotification, 5000);
+            return;
         }
+
+        const btnRect = autoBtn.getBoundingClientRect();
+        const notifRect = autoNotification.getBoundingClientRect();
+        const notifWidth = notifRect.width || 220;
+
+        // Position notification centered horizontally above/below the button when possible
+        let left = Math.round(btnRect.left + (btnRect.width / 2) - (notifWidth / 2));
+        left = Math.max(8, Math.min(left, window.innerWidth - notifWidth - 8));
+        const top = Math.round(btnRect.bottom + 8);
+
+        autoNotification.style.left = `${left}px`;
+        autoNotification.style.top = `${top}px`;
+        autoNotification.style.right = 'auto';
+
+        // Compute arrow offset inside the notification box (centered on button center)
+        const arrowCenter = (btnRect.left + (btnRect.width / 2)) - left;
+        const arrowLeft = Math.max(6, Math.min(notifWidth - 12, Math.round(arrowCenter - 6)));
+        autoNotification.style.setProperty('--arrow-left', `${arrowLeft}px`);
+
+        // Reveal with animation
+        autoNotification.style.visibility = 'visible';
+        // Force reflow
+        void autoNotification.offsetWidth;
+        autoNotification.classList.add('show');
+        // Auto hide after 5 seconds
+        setTimeout(hideAutoNotification, 5000);
     }
     
     function hideAutoNotification() {
-        if (autoNotification) {
-            autoNotification.classList.remove('show');
-        }
+        if (!autoNotification) return;
+        autoNotification.classList.remove('show');
+        // Remove inline positioning after animation completes
+        setTimeout(() => {
+            if (!autoNotification) return;
+            autoNotification.style.display = '';
+            autoNotification.style.left = '';
+            autoNotification.style.top = '';
+            autoNotification.style.right = '';
+            autoNotification.style.removeProperty('--arrow-left');
+            autoNotification.style.removeProperty('--arrow-right');
+        }, 320);
     }
     
     function enableAutoFromNotification() {
