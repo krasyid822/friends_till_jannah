@@ -1,0 +1,36 @@
+name: Deploy Pages (with LFS objects)
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Publish site with LFS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with LFS)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Ensure git-lfs and pull objects
+        run: |
+          git lfs install --local
+          git lfs pull --all || true
+
+      - name: Prepare publish directory
+        run: |
+          mkdir -p public
+          # copy the static site folder to publish_dir
+          cp -r rihlah_batu_belah_2/* public/ || true
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
