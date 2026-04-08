@@ -701,8 +701,23 @@ if (isMediaPlayerPage) {
                 mediaContainer.appendChild(video);
                 scrollToSlideBottom();
             };
-            video.onerror = () => {
+            video.onerror = async () => {
                 if (tokenAtRender !== renderToken) return;
+                try {
+                    // Try fetching the URL to detect possible Git LFS pointer content
+                    const resp = await fetch(file, { cache: 'no-store' });
+                    if (resp && resp.ok) {
+                        const text = await resp.text();
+                        if (/^version https:\/\/git-lfs.github.com\/spec\/v1/m.test(text)) {
+                            mediaContainer.innerHTML = '<div style="color:#ffb3b3; padding:16px;">⚠️ Error loading video — file appears to be a Git LFS pointer and cannot be served from this host (e.g. GitHub Pages). Host the video on a public CDN or provide a direct URL.</div>';
+                            scrollToSlideBottom();
+                            return;
+                        }
+                    }
+                } catch (fetchErr) {
+                    console.warn('Error checking video source after error:', fetchErr);
+                }
+
                 mediaContainer.innerHTML = '<div style="color:#fff;">Error loading video</div>';
                 scrollToSlideBottom();
             };

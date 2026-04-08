@@ -18,32 +18,34 @@
             padding: 20px 0;
         }
         
-        /* Floating Controls */
+        /* Floating Controls - size to content and wrap */
         .floating-controls {
             position: fixed;
             top: 20px;
             right: 20px;
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, max-content));
+            display: flex;
             gap: 8px;
-            z-index: 1000;
-            width: auto;
-            max-width: calc(100vw - 24px);
-            justify-content: end;
-            justify-items: stretch;
-            align-items: start;
+            flex-wrap: wrap;
+            z-index: 1001;
+            max-width: calc(70vw);
+            justify-content: flex-end;
+            align-items: flex-start;
         }
-        
-        /* Keep controls full width inside each grid cell */
+
+        /* Keep controls sized to their content */
         .floating-controls .floating-btn {
             width: auto;
             min-width: 0;
+            flex: 0 0 auto;
+            white-space: nowrap;
         }
 
         .floating-controls .floating-select {
             width: auto;
-            max-width: 100%;
+            max-width: 160px;
             min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         /* Auto Notification - Positioned independently */
@@ -106,7 +108,7 @@
             left: 20px;
             display: flex;
             gap: 10px;
-            z-index: 1000;
+            z-index: 1002;
             flex-wrap: wrap;
         }
         
@@ -196,11 +198,11 @@
             .floating-controls {
                 top: 10px;
                 right: 10px;
-                grid-template-columns: repeat(2, minmax(0, max-content));
                 gap: 6px;
                 width: auto;
-                max-width: calc(100vw - 20px);
+                max-width: calc(90vw);
                 overflow: visible;
+                flex-wrap: wrap;
             }
             
             /* Notification positioned to the left of buttons */
@@ -266,10 +268,10 @@
             .floating-controls {
                 right: 5px;
                 top: 5px;
-                grid-template-columns: repeat(2, minmax(0, max-content));
-                width: auto;
-                max-width: calc(100vw - 10px);
                 gap: 6px;
+                width: auto;
+                max-width: calc(95vw);
+                flex-wrap: wrap;
                 overflow: visible;
             }
             
