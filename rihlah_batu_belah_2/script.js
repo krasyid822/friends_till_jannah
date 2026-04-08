@@ -57,8 +57,8 @@ if (isMediaPlayerPage) {
     const toggleSelectBtn = document.getElementById('toggle-select-btn');
     const downloadSelectedBtn = document.getElementById('download-selected-btn');
 
-    // IntersectionObserver for lazy-loading grid images
-    const gridObserverOptions = { root: null, rootMargin: '300px', threshold: 0.01 };
+    // IntersectionObserver for lazy-loading grid images (reduced prefetch distance)
+    const gridObserverOptions = { root: null, rootMargin: '120px', threshold: 0.1 };
     const gridImageObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (!entry.isIntersecting) return;
@@ -73,6 +73,24 @@ if (isMediaPlayerPage) {
             gridImageObserver.unobserve(img);
         });
     }, gridObserverOptions);
+
+    // Separate observer to trigger expensive PhotoSphere detection only when image is near viewport
+    const sphereObserverOptions = { root: null, rootMargin: '200px', threshold: 0.02 };
+    const sphereObserver = new IntersectionObserver((entries) => {
+        entries.forEach(async (entry) => {
+            if (!entry.isIntersecting) return;
+            const img = entry.target;
+            const file = img.dataset.src || img.src || img.getAttribute('data-file');
+            const gridItem = img.closest && img.closest('.grid-item');
+            try {
+                const isSphere = await detectPhotoSphere(file);
+                if (isSphere && gridItem) addSphereBadge(gridItem);
+            } catch (err) {
+                console.warn('Grid PhotoSphere detection failed:', err);
+            }
+            sphereObserver.unobserve(img);
+        });
+    }, sphereObserverOptions);
     
     console.log('Elements loaded:');
     console.log('- slideContainer:', slideContainer);
@@ -694,13 +712,23 @@ if (isMediaPlayerPage) {
             const video = document.createElement('video');
             video.src = file;
             video.controls = true;
-            video.autoplay = autoplayEnabled;
-            video.onloadeddata = () => {
+            // Reduce automatic download: only fetch metadata until user plays or autoplay is active for current item
+            video.preload = 'metadata';
+            video.playsInline = true;
+            video.setAttribute('playsinline', '');
+            video.autoplay = false;
+
+            video.onloadedmetadata = () => {
                 if (tokenAtRender !== renderToken) return;
                 mediaContainer.innerHTML = '';
                 mediaContainer.appendChild(video);
                 scrollToSlideBottom();
+                // Start playback only when autoplay is desired for the active slide
+                if (autoplayEnabled) {
+                    video.play().catch(() => {});
+                }
             };
+
             video.onerror = async () => {
                 if (tokenAtRender !== renderToken) return;
                 try {
@@ -721,6 +749,7 @@ if (isMediaPlayerPage) {
                 mediaContainer.innerHTML = '<div style="color:#fff;">Error loading video</div>';
                 scrollToSlideBottom();
             };
+
             video.onended = () => {
                 if (autoplayEnabled) {
                     nextMedia();
@@ -805,21 +834,14 @@ if (isMediaPlayerPage) {
 
                     gridItem.appendChild(img);
 
-                    // Observe the image for lazy loading
+                    // Observe the image for lazy loading and defer expensive PhotoSphere detection
                     try {
                         gridImageObserver.observe(img);
+                        sphereObserver.observe(img);
                     } catch (e) {
                         // Fallback: set src immediately if observer fails
                         img.src = file;
                     }
-
-                    detectPhotoSphere(file)
-                        .then(isSphere => {
-                            if (isSphere) addSphereBadge(gridItem);
-                        })
-                        .catch(err => {
-                            console.warn('Grid PhotoSphere detection failed:', err);
-                        });
                 } else {
                     const blocked = document.createElement('div');
                     blocked.style.cssText = 'position:absolute;width:100%;height:100%;background:#2a2a2a;display:flex;align-items:center;justify-content:center;color:#ffb3b3;font-size:1.2em;padding:10px;box-sizing:border-box;text-align:center;';
