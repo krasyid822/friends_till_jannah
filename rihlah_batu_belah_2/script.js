@@ -26,6 +26,54 @@ if (isMediaPlayerPage) {
     const selectedMediaSet = new Set();
     const photosphereCache = new Map();
     const MAX_PHOTOSPHERE_CACHE_ENTRIES = 400;
+    // LFS fallback map: loaded from lfs-fallbacks.json (optional) and merged with localStorage overrides
+    let lfsFallbackMap = {};
+    let lfsFallbacksLoaded = false;
+
+    async function loadLfsFallbacks() {
+        try {
+            const res = await fetch('lfs-fallbacks.json', { cache: 'no-store' });
+            if (res && res.ok) {
+                const json = await res.json();
+                if (json && typeof json === 'object') {
+                    lfsFallbackMap = Object.assign({}, lfsFallbackMap, json);
+                }
+            }
+        } catch (err) {
+            // ignore if file not present
+        }
+
+        try {
+            const local = localStorage.getItem('lfsFallbacks');
+            if (local) {
+                const parsed = JSON.parse(local);
+                if (parsed && typeof parsed === 'object') {
+                    lfsFallbackMap = Object.assign({}, lfsFallbackMap, parsed);
+                }
+            }
+        } catch (err) {
+            console.warn('Failed to load local lfsFallbacks:', err);
+        }
+
+        lfsFallbacksLoaded = true;
+    }
+
+    function getFallbackUrlFor(file) {
+        if (!file) return null;
+        if (lfsFallbackMap[file]) return lfsFallbackMap[file];
+        const name = file.split('/').pop();
+        if (lfsFallbackMap[name]) return lfsFallbackMap[name];
+        return null;
+    }
+
+    function saveLocalFallback(key, url) {
+        try {
+            lfsFallbackMap[key] = url;
+            localStorage.setItem('lfsFallbacks', JSON.stringify(lfsFallbackMap));
+        } catch (err) {
+            console.error('Failed to save fallback mapping:', err);
+        }
+    }
     const pannellumSourceCandidates = [
         {
             name: 'local pannellum',
@@ -96,6 +144,8 @@ if (isMediaPlayerPage) {
     console.log('- slideContainer:', slideContainer);
     console.log('- gridContainer:', gridContainer);
     console.log('- autoNotification:', autoNotification);
+    // Load optional LFS fallback mappings (lfs-fallbacks.json) and local overrides
+    loadLfsFallbacks().catch(() => {});
 
     function clearMediaContainer() {
         clearAutoplayTimer();
@@ -590,6 +640,126 @@ if (isMediaPlayerPage) {
         }
     }
     
+    // Show UI for LFS pointer fallback: allow pasting direct URL or previewing
+    function showLfsFallbackUI(file, pointerText, tokenAtRender) {
+        if (tokenAtRender !== renderToken) return;
+        const basename = file.split('/').pop();
+
+        const container = document.createElement('div');
+        container.style.cssText = 'color:#ffefdb;padding:14px;background:rgba(40,30,20,0.8);border-radius:10px;max-width:720px;margin:0 12px;text-align:left;';
+        container.innerHTML = `
+            <div style="font-weight:700;margin-bottom:6px;">⚠️ File disimpan di Git LFS</div>
+            <div style="margin-bottom:8px;color:#ffdcb8;font-size:0.95em;">File ini disimpan di Git LFS dan tidak dapat dilayani langsung oleh GitHub Pages. Masukkan URL publik (CDN / S3 / GitHub Releases) untuk melihat preview atau simpan untuk browser ini.</div>
+        `;
+
+        const input = document.createElement('input');
+        input.type = 'url';
+        input.placeholder = 'https://example.cdn.com/path/to/' + encodeURIComponent(basename);
+        input.style.cssText = 'width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.25);color:#fff;margin-bottom:8px;';
+
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex;gap:8px;align-items:center';
+
+        const previewBtn = document.createElement('button');
+        previewBtn.textContent = 'Preview URL';
+        previewBtn.className = 'floating-btn';
+        previewBtn.style.cssText = 'padding:8px 10px;border-radius:8px;font-size:0.9em;';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Simpan untuk browser ini';
+        saveBtn.className = 'floating-btn';
+        saveBtn.style.cssText = 'padding:8px 10px;border-radius:8px;font-size:0.9em;opacity:0.95;';
+
+        const openBtn = document.createElement('a');
+        openBtn.textContent = 'Buka di tab baru';
+        openBtn.target = '_blank';
+        openBtn.rel = 'noopener noreferrer';
+        openBtn.className = 'floating-btn';
+        openBtn.style.cssText = 'padding:8px 10px;border-radius:8px;font-size:0.9em;text-decoration:none;display:inline-flex;align-items:center;';
+
+        btnRow.appendChild(previewBtn);
+        btnRow.appendChild(saveBtn);
+        btnRow.appendChild(openBtn);
+
+        container.appendChild(input);
+        container.appendChild(btnRow);
+
+        // If pointerText available, show a copy button
+        if (pointerText) {
+            const copyBtn = document.createElement('button');
+            copyBtn.textContent = 'Copy LFS pointer';
+            copyBtn.className = 'floating-btn';
+            copyBtn.style.cssText = 'padding:8px 10px;border-radius:8px;font-size:0.9em;';
+            copyBtn.onclick = () => {
+                navigator.clipboard && navigator.clipboard.writeText(pointerText).then(() => {
+                    copyBtn.textContent = 'Copied';
+                    setTimeout(() => copyBtn.textContent = 'Copy LFS pointer', 1400);
+                }).catch(() => {});
+            };
+            container.appendChild(document.createElement('br'));
+            container.appendChild(copyBtn);
+        }
+
+        // Preview handler
+        previewBtn.onclick = async () => {
+            const url = (input.value || '').trim();
+            if (!url) return alert('Masukkan URL publik terlebih dahulu');
+            try {
+                // Try to fetch headers first to check content-type
+                const head = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+                if (head && head.ok) {
+                    const type = head.headers.get('content-type') || '';
+                    // If video type, create video element and play
+                    if (/video\//i.test(type) || url.match(/\.(mp4|webm|mov)(\?|$)/i)) {
+                        const vid = document.createElement('video');
+                        vid.src = url;
+                        vid.controls = true;
+                        vid.preload = 'metadata';
+                        vid.autoplay = autoplayEnabled;
+                        clearMediaContainer();
+                        mediaContainer.appendChild(vid);
+                        vid.play().catch(() => {});
+                    } else if (/image\//i.test(type) || url.match(/\.(jpg|jpeg|png|webp)(\?|$)/i)) {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        clearMediaContainer();
+                        mediaContainer.appendChild(img);
+                    } else {
+                        // Fallback open in new tab
+                        window.open(url, '_blank');
+                    }
+                } else {
+                    alert('Gagal menghubungi URL. Coba periksa akses publiknya.');
+                }
+            } catch (err) {
+                console.error('Preview failed:', err);
+                alert('Preview gagal: ' + (err.message || err));
+            }
+        };
+
+        saveBtn.onclick = () => {
+            const url = (input.value || '').trim();
+            if (!url) return alert('Masukkan URL yang valid untuk disimpan');
+            saveLocalFallback(basename, url);
+            saveBtn.textContent = 'Tersimpan';
+            setTimeout(() => saveBtn.textContent = 'Simpan untuk browser ini', 1400);
+        };
+
+        openBtn.onclick = (e) => {
+            const url = (input.value || '').trim();
+            if (!url) {
+                e.preventDefault();
+                alert('Masukkan URL publik terlebih dahulu');
+                return;
+            }
+            openBtn.href = url;
+        };
+
+        clearMediaContainer();
+        mediaContainer.appendChild(container);
+        scrollToSlideBottom();
+    }
+
     // Filter and sort media based on priority and not-priority lists
     function filterMedia() {
         let filteredFiles;
@@ -737,8 +907,28 @@ if (isMediaPlayerPage) {
                     if (resp && resp.ok) {
                         const text = await resp.text();
                         if (/^version https:\/\/git-lfs.github.com\/spec\/v1/m.test(text)) {
-                            mediaContainer.innerHTML = '<div style="color:#ffb3b3; padding:16px;">⚠️ Error loading video — file appears to be a Git LFS pointer and cannot be served from this host (e.g. GitHub Pages). Host the video on a public CDN or provide a direct URL.</div>';
-                            scrollToSlideBottom();
+                            // Detected LFS pointer. Try to find fallback mapping (from file or basename)
+                            if (!lfsFallbacksLoaded) await loadLfsFallbacks();
+                            const fallback = getFallbackUrlFor(file);
+                            if (fallback) {
+                                // Load from fallback URL
+                                clearMediaContainer();
+                                const vid = document.createElement('video');
+                                vid.src = fallback;
+                                vid.controls = true;
+                                vid.preload = 'metadata';
+                                vid.autoplay = autoplayEnabled;
+                                mediaContainer.appendChild(vid);
+                                vid.addEventListener('loadedmetadata', () => {
+                                    if (tokenAtRender !== renderToken) return;
+                                    scrollToSlideBottom();
+                                    if (autoplayEnabled) vid.play().catch(() => {});
+                                }, { once: true });
+                                return;
+                            }
+
+                            // No fallback known: show UI to paste a direct URL or save a local mapping
+                            showLfsFallbackUI(file, text, tokenAtRender);
                             return;
                         }
                     }
