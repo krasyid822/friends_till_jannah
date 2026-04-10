@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   deploy:
@@ -29,8 +31,21 @@ jobs:
           # copy the static site folder to publish_dir
           cp -r rihlah_batu_belah_2/* public/ || true
 
+      - name: Debug info before deploy
+        run: |
+          echo "--- git version ---"
+          git --version || true
+          echo "--- current dir listing (public) ---"
+          ls -la public || true
+          echo "--- git remote -v (checkout) ---"
+          git remote -v || true
+          echo "--- show sample file head ---"
+          if [ -f public/index.html ]; then head -n 5 public/index.html; fi
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
+          publish_branch: gh-pages
+          allow_empty_commit: true
